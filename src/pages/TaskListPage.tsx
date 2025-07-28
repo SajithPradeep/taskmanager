@@ -3,12 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { Fab, Dialog, DialogContent, DialogTitle, IconButton, Menu, MenuItem } from '@mui/material';
+import { 
+  Fab, 
+  Dialog, 
+  DialogContent, 
+  DialogTitle, 
+  IconButton, 
+  Menu, 
+  MenuItem,
+  Stack,
+  Chip
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import SortIcon from '@mui/icons-material/Sort';
 import SettingsIcon from '@mui/icons-material/Settings';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { TaskList } from '../components/TaskList';
 import { AddTaskForm } from '../components/AddTaskForm';
 import { TaskFilterDropdown } from '../components/TaskFilterDropdown';
@@ -467,7 +478,6 @@ export const TaskListPage = () => {
               onTaskUpdate={handleTaskUpdate}
               onTaskDelete={handleTaskDelete}
               onTaskClick={handleTaskClick}
-              onAddClick={handleAddClick}
             />
           )}
         </Box>

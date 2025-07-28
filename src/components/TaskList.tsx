@@ -39,9 +39,7 @@ import {
   taskStatusColors,
   TaskStatus
 } from '../config/supabase'
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
 import { getDueDateInfo } from '../utils/dateUtils'
-import { EmptyState } from './EmptyState';
 import { useAuth } from '../contexts/AuthContext';
 
 // Helper for size icons
@@ -93,7 +91,6 @@ export const TaskList = ({ tasks, onTaskUpdate, onTaskDelete, onTaskClick }: Tas
   const [taskHistory, setTaskHistory] = useState<TaskHistory[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false)
   const { user } = useAuth();
 
   // Group tasks by status
@@ -496,91 +493,89 @@ export const TaskList = ({ tasks, onTaskUpdate, onTaskDelete, onTaskClick }: Tas
         </Box>
       )}
 
-      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <Stack spacing={2}>
-          {(['not_started', 'in_progress', 'completed'] as TaskStatus[]).map((status) => (
-            groupedTasks[status].length > 0 && (
-              <Accordion
-                key={status}
-                defaultExpanded={status !== 'completed'}
-                disableGutters
-                elevation={0}
-                sx={{
-                  bgcolor: 'background.paper',
-                  '&:before': {
-                    display: 'none',
-                  },
-                  '& .MuiAccordionSummary-root': {
+      <Stack spacing={2}>
+        {(['not_started', 'in_progress', 'completed'] as TaskStatus[]).map((status) => (
+          groupedTasks[status].length > 0 && (
+            <Accordion
+              key={status}
+              defaultExpanded={status !== 'completed'}
+              disableGutters
+              elevation={0}
+              sx={{
+                bgcolor: 'background.paper',
+                '&:before': {
+                  display: 'none',
+                },
+                '& .MuiAccordionSummary-root': {
+                  minHeight: 'auto',
+                  padding: isMobile ? 1.75 : 2.5,
+                  '&.Mui-expanded': {
                     minHeight: 'auto',
-                    padding: isMobile ? 1.75 : 2.5,
-                    '&.Mui-expanded': {
-                      minHeight: 'auto',
-                      borderBottom: '1px solid',
-                      borderColor: 'divider',
-                    }
-                  },
-                  '& .MuiAccordionSummary-content': {
-                    margin: 0,
-                    '&.Mui-expanded': {
-                      margin: 0
-                    }
-                  },
-                  '& .MuiAccordionDetails-root': {
-                    padding: isMobile ? 1.75 : 2.5,
-                    paddingTop: 2
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                  }
+                },
+                '& .MuiAccordionSummary-content': {
+                  margin: 0,
+                  '&.Mui-expanded': {
+                    margin: 0
+                  }
+                },
+                '& .MuiAccordionDetails-root': {
+                  padding: isMobile ? 1.75 : 2.5,
+                  paddingTop: 2
+                }
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  flexDirection: 'row-reverse',
+                  '& .MuiAccordionSummary-expandIconWrapper': {
+                    marginRight: 1
                   }
                 }}
               >
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  sx={{
-                    flexDirection: 'row-reverse',
-                    '& .MuiAccordionSummary-expandIconWrapper': {
-                      marginRight: 1
-                    }
-                  }}
-                >
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <Typography
-                      variant={isMobile ? "subtitle1" : "h6"}
-                      sx={{
-                        color: taskStatusColors[status],
-                        fontWeight: 600,
-                        letterSpacing: '0.01em'
-                      }}
-                    >
-                      {statusDisplayNames[status]}
-                    </Typography>
-                    <Chip
-                      label={groupedTasks[status].length}
-                      size="small"
-                      sx={{ 
-                        bgcolor: taskStatusColors[status], 
-                        color: 'white',
-                        height: 22,
-                        '& .MuiChip-label': { 
-                          px: 1.2,
-                          fontSize: '0.8125rem',
-                          fontWeight: 500
-                        }
-                      }}
-                    />
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails sx={{ p: 0 }}>
-                  <List disablePadding>
-                    {groupedTasks[status].map(renderTask)}
-                  </List>
-                </AccordionDetails>
-              </Accordion>
-            )
-          ))}
-        </Stack>
-      </DragDropContext>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  gap: 1
+                }}>
+                  <Typography
+                    variant={isMobile ? "subtitle1" : "h6"}
+                    sx={{
+                      color: taskStatusColors[status],
+                      fontWeight: 600,
+                      letterSpacing: '0.01em'
+                    }}
+                  >
+                    {statusDisplayNames[status]}
+                  </Typography>
+                  <Chip
+                    label={groupedTasks[status].length}
+                    size="small"
+                    sx={{ 
+                      bgcolor: taskStatusColors[status], 
+                      color: 'white',
+                      height: 22,
+                      '& .MuiChip-label': { 
+                        px: 1.2,
+                        fontSize: '0.8125rem',
+                        fontWeight: 500
+                      }
+                    }}
+                  />
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 0 }}>
+                <List disablePadding>
+                  {groupedTasks[status].map(renderTask)}
+                </List>
+              </AccordionDetails>
+            </Accordion>
+          )
+        ))}
+      </Stack>
 
       <Menu
         anchorEl={menuAnchor}

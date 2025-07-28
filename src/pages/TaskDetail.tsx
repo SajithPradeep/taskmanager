@@ -94,8 +94,12 @@ export const TaskDetail = () => {
       if (commentsError) throw commentsError;
       setComments(commentsData);
 
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An error occurred while fetching task details');
+      }
     } finally {
       setLoading(false);
     }
@@ -162,9 +166,13 @@ export const TaskDetail = () => {
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim()) return;
-
     try {
+      if (!newComment.trim()) return;
+      if (!user?.id) {
+        setError('No user found. Please sign in again.');
+        return;
+      }
+
       setLoading(true);
       setError(null);
 
@@ -174,7 +182,7 @@ export const TaskDetail = () => {
         .insert({
           task_id: taskId,
           content: newComment,
-          author: 'current_user' // Replace with actual user info when auth is added
+          user_id: user.id
         });
 
       if (commentError) throw commentError;
@@ -184,8 +192,8 @@ export const TaskDetail = () => {
         .from('task_history')
         .insert({
           task_id: taskId,
-          action: 'comment_added',
-          changed_by: 'current_user' // Replace with actual user info when auth is added
+          action: 'comment_added' as const,
+          changed_by: user.id
         });
 
       if (historyError) throw historyError;
@@ -193,8 +201,12 @@ export const TaskDetail = () => {
       setNewComment('');
       await fetchTaskDetails();
 
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An error occurred while adding comment');
+      }
     } finally {
       setLoading(false);
     }
@@ -430,8 +442,8 @@ export const TaskDetail = () => {
                     {record.action === 'created' && 'Task created'}
                     {record.action === 'status_changed' && 
                       `Status changed from ${record.previous_status || 'none'} to ${record.new_status}`}
-                    {record.action === 'field_updated' &&
-                      `${record.field_name} updated from "${record.old_value}" to "${record.new_value}"`}
+                    {record.action === 'field_updated' && record.field_name && 
+                      `${record.field_name} updated from "${record.old_value || ''}" to "${record.new_value || ''}"`}
                     {record.action === 'comment_added' && 'Comment added'}
                   </Typography>
                 </Box>

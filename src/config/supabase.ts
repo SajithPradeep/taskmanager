@@ -65,11 +65,17 @@ export const taskStatusColors: Record<TaskStatus, string> = {
   'completed': '#4caf50'
 };
 
+export type TaskAction = 'created' | 'status_changed' | 'field_updated' | 'comment_added';
+
 export interface TaskHistory {
-  id: number
-  task_id: number
-  action: 'created' | 'status_changed' | 'updated'
-  previous_status: TaskStatus | null
-  new_status: TaskStatus | null
-  changed_at: string
+  id: number;
+  task_id: number;
+  action: TaskAction;
+  previous_status?: TaskStatus;
+  new_status?: TaskStatus;
+  field_name?: string;
+  old_value?: string;
+  new_value?: string;
+  changed_at: string;
+  changed_by: string;
 } 
