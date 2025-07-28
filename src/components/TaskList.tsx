@@ -99,86 +99,25 @@ export const TaskList = ({ tasks, onTaskUpdate, onTaskDelete, onTaskClick }: Tas
       'not_started': [],
       'in_progress': [],
       'completed': []
-    }
+    };
     
     tasks.forEach(task => {
-      groups[task.status].push(task)
-    })
+      groups[task.status].push(task);
+    });
     
-    return groups
-  }, [tasks])
-
-  const handleDragStart = () => {
-    setIsDragging(true)
-  }
-
-  const handleDragEnd = async (result: DropResult) => {
-    if (!user?.id) {
-      console.error('No user ID found');
-      return;
-    }
-
-    setIsDragging(false)
-    
-    if (!result.destination) return
-
-    const sourceStatus = result.source.droppableId as TaskStatus
-    const destinationStatus = result.destination.droppableId as TaskStatus
-    const taskId = parseInt(result.draggableId)
-    const task = tasks.find(t => t.id === taskId)
-
-    if (!task || sourceStatus === destinationStatus) return
-
-    setIsLoading(true)
-    const now = new Date().toISOString()
-    const updates: Partial<Task> = {
-      status: destinationStatus,
-      ...(destinationStatus === 'in_progress' && !task.started_at && { started_at: now }),
-      ...(destinationStatus === 'completed' && { completed_at: now })
-    }
-
-    try {
-      const { data: updatedTasks, error: updateError } = await supabase
-        .from('tasks')
-        .update(updates)
-        .eq('id', taskId)
-        .eq('user_id', user.id)
-        .select('*')
-
-      if (updateError) throw updateError
-
-      const { error: historyError } = await supabase
-        .from('task_history')
-        .insert([{
-          task_id: taskId,
-          action: 'status_changed',
-          previous_status: sourceStatus,
-          new_status: destinationStatus,
-          changed_by: user.id
-        }])
-
-      if (historyError) throw historyError
-
-      if (updatedTasks && updatedTasks[0]) {
-        onTaskUpdate(updatedTasks[0])
-      }
-    } catch (error) {
-      console.error('Error updating task:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    return groups;
+  }, [tasks]);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>, task: Task) => {
-    event.stopPropagation()
-    setMenuAnchor(event.currentTarget)
-    setSelectedTask(task)
-  }
+    event.stopPropagation();
+    setMenuAnchor(event.currentTarget);
+    setSelectedTask(task);
+  };
 
   const handleMenuClose = () => {
-    setMenuAnchor(null)
-    setSelectedTask(null)
-  }
+    setMenuAnchor(null);
+    setSelectedTask(null);
+  };
 
   const updateTaskStatus = async (newStatus: Task['status']) => {
     if (!user?.id) {
@@ -186,15 +125,15 @@ export const TaskList = ({ tasks, onTaskUpdate, onTaskDelete, onTaskClick }: Tas
       return;
     }
 
-    if (!selectedTask) return
-    setIsLoading(true)
+    if (!selectedTask) return;
+    setIsLoading(true);
 
-    const now = new Date().toISOString()
+    const now = new Date().toISOString();
     const updates: Partial<Task> = {
       status: newStatus,
       ...(newStatus === 'in_progress' && !selectedTask.started_at && { started_at: now }),
       ...(newStatus === 'completed' && { completed_at: now })
-    }
+    };
 
     try {
       const { data: updatedTasks, error: updateError } = await supabase
@@ -202,9 +141,9 @@ export const TaskList = ({ tasks, onTaskUpdate, onTaskDelete, onTaskClick }: Tas
         .update(updates)
         .eq('id', selectedTask.id)
         .eq('user_id', user.id)
-        .select('*')
+        .select('*');
 
-      if (updateError) throw updateError
+      if (updateError) throw updateError;
 
       const { error: historyError } = await supabase
         .from('task_history')
@@ -214,20 +153,20 @@ export const TaskList = ({ tasks, onTaskUpdate, onTaskDelete, onTaskClick }: Tas
           previous_status: selectedTask.status,
           new_status: newStatus,
           changed_by: user.id
-        }])
+        }]);
 
-      if (historyError) throw historyError
+      if (historyError) throw historyError;
 
       if (updatedTasks && updatedTasks[0]) {
-        onTaskUpdate(updatedTasks[0])
+        onTaskUpdate(updatedTasks[0]);
       }
     } catch (error) {
-      console.error('Error updating task:', error)
+      console.error('Error updating task:', error);
     } finally {
-      setIsLoading(false)
-      handleMenuClose()
+      setIsLoading(false);
+      handleMenuClose();
     }
-  }
+  };
 
   const deleteTask = async (id: number) => {
     setIsLoading(true)

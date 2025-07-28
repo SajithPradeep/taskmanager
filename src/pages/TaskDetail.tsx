@@ -41,6 +41,11 @@ interface TaskHistoryExtended extends TaskHistory {
   new_value?: string;
 }
 
+const getSizeDescription = (size: TaskSize | undefined): string => {
+  if (!size) return 'No size set';
+  return `${size} - ${taskSizeDescriptions[size]}`;
+};
+
 export const TaskDetail = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
@@ -369,7 +374,7 @@ export const TaskDetail = () => {
                     color={task.priority === 'high' ? 'error' : task.priority === 'medium' ? 'warning' : 'success'}
                   />
                   <Chip
-                    label={`${task.size} - ${taskSizeDescriptions[task.size]}`}
+                    label={getSizeDescription(task.size)}
                     size="small"
                     variant="outlined"
                   />
