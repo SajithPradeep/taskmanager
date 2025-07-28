@@ -9,7 +9,6 @@ import {
   Box,
   Menu,
   MenuItem,
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -19,8 +18,6 @@ import {
   AccordionDetails,
   Stack,
   CircularProgress,
-  Paper,
-  alpha,
   useTheme,
   useMediaQuery
 } from '@mui/material'
@@ -39,7 +36,6 @@ import {
   Task,
   TaskHistory,
   supabase,
-  taskSizeDescriptions,
   taskStatusColors,
   TaskStatus
 } from '../config/supabase'
@@ -49,7 +45,8 @@ import { EmptyState } from './EmptyState';
 import { useAuth } from '../contexts/AuthContext';
 
 // Helper for size icons
-const sizeIcon = (size: string) => {
+const sizeIcon = (size: string | undefined): JSX.Element | null => {
+  if (!size) return null;
   switch (size) {
     case 'XS': return <AccessTimeIcon fontSize="small" />;
     case 'S': return <AccessTimeIcon fontSize="small" />;
@@ -64,7 +61,8 @@ const sizeIcon = (size: string) => {
 };
 
 // Helper for category icons
-const categoryIcon = (category: string) => {
+const categoryIcon = (category: string | undefined): JSX.Element | null => {
+  if (!category) return null;
   switch (category) {
     case 'personal': return <PersonIcon fontSize="small" />;
     case 'office': return <WorkIcon fontSize="small" />;
@@ -75,27 +73,26 @@ const categoryIcon = (category: string) => {
 };
 
 interface TaskListProps {
-  tasks: Task[]
-  onTaskUpdate: (task: Task) => void
-  onTaskDelete: (taskId: number) => void
-  onTaskClick: (taskId: number) => void
-  onAddClick: () => void;
+  tasks: Task[];
+  onTaskUpdate: (task: Task) => void;
+  onTaskDelete: (taskId: number) => void;
+  onTaskClick: (taskId: number) => void;
 }
 
 const statusDisplayNames: Record<TaskStatus, string> = {
   'not_started': 'Not Started',
   'in_progress': 'In Progress',
   'completed': 'Completed'
-}
+};
 
-export const TaskList = ({ tasks, onTaskUpdate, onTaskDelete, onTaskClick, onAddClick }: TaskListProps) => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-  const [taskHistory, setTaskHistory] = useState<TaskHistory[]>([])
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+export const TaskList = ({ tasks, onTaskUpdate, onTaskDelete, onTaskClick }: TaskListProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskHistory, setTaskHistory] = useState<TaskHistory[]>([]);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false)
   const { user } = useAuth();
 

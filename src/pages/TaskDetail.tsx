@@ -9,29 +9,21 @@ import {
   Stack,
   Chip,
   IconButton,
-  Divider,
   Grid,
   MenuItem,
   Select,
   FormControl,
   InputLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Alert,
   CircularProgress
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon,
-  Save as SaveIcon,
   Close as CloseIcon,
-  AccessTime as AccessTimeIcon,
-  Label as LabelIcon,
-  Person as PersonIcon
+  AccessTime as AccessTimeIcon
 } from '@mui/icons-material';
-import { Task, TaskHistory, supabase, taskSizeDescriptions, taskStatusColors, TaskStatus } from '../config/supabase';
+import { Task, TaskHistory, supabase, taskSizeDescriptions, TaskStatus, TaskPriority, TaskSize, TaskCategory } from '../config/supabase';
 import { getDueDateInfo } from '../utils/dateUtils';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -43,12 +35,18 @@ interface Comment {
   updated_at: string;
 }
 
+interface TaskHistoryExtended extends TaskHistory {
+  field_name?: string;
+  old_value?: string;
+  new_value?: string;
+}
+
 export const TaskDetail = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [task, setTask] = useState<Task | null>(null);
-  const [history, setHistory] = useState<TaskHistory[]>([]);
+  const [history, setHistory] = useState<TaskHistoryExtended[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState<Partial<Task>>({});
@@ -130,33 +128,34 @@ export const TaskDetail = () => {
       if (updateError) throw updateError;
 
       // Add history records for changed fields
-      const changedFields = Object.keys(editedTask).filter(
-        key => task && editedTask[key] !== task[key]
-      );
+      if (task) {
+        const changedFields = Object.entries(editedTask)
+          .filter(([key, value]) => task[key as keyof Task] !== value);
 
-      if (changedFields.length > 0) {
-        const historyRecords = changedFields.map(field => ({
-          task_id: taskId,
-          action: 'field_updated',
-          field_name: field,
-          old_value: String(task?.[field] || ''),
-          new_value: String(editedTask[field] || ''),
-          changed_by: user.id
-        }));
+        if (changedFields.length > 0) {
+          const historyRecords = changedFields.map(([field, value]) => ({
+            task_id: taskId,
+            action: 'field_updated' as const,
+            field_name: field,
+            old_value: String(task[field as keyof Task] || ''),
+            new_value: String(value || ''),
+            changed_by: user.id
+          }));
 
-        const { error: historyError } = await supabase
-          .from('task_history')
-          .insert(historyRecords);
+          const { error: historyError } = await supabase
+            .from('task_history')
+            .insert(historyRecords);
 
-        if (historyError) throw historyError;
+          if (historyError) throw historyError;
+        }
       }
 
       setTask(data);
       setIsEditing(false);
       await fetchTaskDetails();
 
-    } catch (err) {
-      setError(err.message);
+    } catch (error: any) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -291,7 +290,7 @@ export const TaskDetail = () => {
                       <Select
                         value={editedTask.priority || 'medium'}
                         label="Priority"
-                        onChange={(e) => setEditedTask({ ...editedTask, priority: e.target.value })}
+                        onChange={(e) => setEditedTask({ ...editedTask, priority: e.target.value as TaskPriority })}
                       >
                         <MenuItem value="low">Low</MenuItem>
                         <MenuItem value="medium">Medium</MenuItem>
@@ -305,7 +304,7 @@ export const TaskDetail = () => {
                       <Select
                         value={editedTask.size || 'M'}
                         label="Size"
-                        onChange={(e) => setEditedTask({ ...editedTask, size: e.target.value })}
+                        onChange={(e) => setEditedTask({ ...editedTask, size: e.target.value as TaskSize })}
                       >
                         {Object.entries(taskSizeDescriptions).map(([size, desc]) => (
                           <MenuItem key={size} value={size}>
@@ -321,7 +320,7 @@ export const TaskDetail = () => {
                       <Select
                         value={editedTask.category || 'personal'}
                         label="Category"
-                        onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value })}
+                        onChange={(e) => setEditedTask({ ...editedTask, category: e.target.value as TaskCategory })}
                       >
                         <MenuItem value="personal">Personal</MenuItem>
                         <MenuItem value="office">Office</MenuItem>
